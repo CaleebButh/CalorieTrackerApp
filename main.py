@@ -2,8 +2,10 @@ from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 
+FAT_GOAL = 90
 PROTEIN_GOAL = 200
 CALORIE_GOAL = 2000
+CARBS_GOAL = 154
 
 today = []
 
@@ -48,26 +50,30 @@ while not done:
         total_carbs = sum(food.carbs for food in today)
         total_fat = sum(food.fat for food in today)
 
-        #Generates pie chart
-        macros = [total_calories, total_carbs, total_fat, total_protein]
-        pieChartLabels = ["Calories", "Carbs", "Fats", "Protein"]
+        #Generate the figure with 4 subplots
+        fig, axs = plt.subplots(2,2)
 
-        fig, ax = plt.subplots()
-        ax.pie(macros, labels=pieChartLabels, autopct="%1.1f%%")
+        #Generate the pie chart
+        axs[0,0].pie([total_calories, total_carbs, total_fat, total_protein], labels=["Calories","Carbs", "Fats", "Protein"], autopct="%1.1f%%")
+        axs[0,0].set_title("Macro Distribution")
 
-        #adds calories from foods to list.
-        foodsToday = [food.name for food in today]
-        calsToday = []
-        for food in today:
-            calsToday.append(food.calories)
+        #bar chart
+        axs[0,1].bar([0, 1, 2], [total_protein, total_fat, total_carbs], width=0.4)
+        axs[0,1].bar([0.5, 1.5, 2.5], [PROTEIN_GOAL, FAT_GOAL, CARBS_GOAL], width=0.4)
+        axs[0,1].set_title("Macro Progress")
 
-        #Generates caloric bar graph
-        plt.bar(foodsToday, calsToday, width=0.3)
-        plt.title("Calories from food today.")
-        plt.xlabel("Foods")
-        plt.ylabel("Calories")
+        #Calories vs daily limit pie chart
+        axs[1,0].pie([total_calories, CALORIE_GOAL - total_calories], labels=["calories", "Remaining"], autopct="%1.1f%%")
+        axs[1,0].set_title("Calories consumed vs Goal")
+
+        #Line chart
+        axs[1,1].plot(list(range(len(today))), np.cumsum([food.calories for food in today]), label="Calories Eaten")
+        axs[1,1].plot(list(range(len(today))), [CALORIE_GOAL] * len(today), label = "Calorie goal" )
+        axs[1,1].legend()
+        axs[1,1].set_title("Calories Goal Over Time")
 
         #show plots
+        fig.tight_layout()
         plt.show()
 
     elif choice.lower() == "q":
